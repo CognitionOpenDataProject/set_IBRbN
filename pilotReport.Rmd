@@ -10,13 +10,13 @@ output:
 #### Pilot: Kyle MacDonald
 #### Co-pilot: Tom Hardwicke  
 #### Start date: 4/21/17
-#### End date: [Insert end date - use US format]   
+#### End date: 4/24/17  
 
 -------
 
 #### Methods summary: 
 
-On each trial, adult participants saw pictures of concrete objects (e.g., a soccer ball) on a computer screen and were asked to produce the verbal label for the object as quickly as possible. The target words were generated from a set of 16 themes (e.g., soccer) and the key predictor variable was the *ordinal position* of the target word within its thematic context -- that is, how many words from that theme had the participant already named in the experiment. The dependent variables were participants' reaction times (RTs) and error rates, and the prediction was that words with higher ordinal positions would have slower RTs because of interference from the previously named words within that theme.
+On each trial, adult participants saw pictures of concrete objects (e.g., a soccer ball) on a computer screen and were asked to produce the verbal label for that object as quickly as possible. The target words were generated from a set of 16 themes (e.g., soccer) and the key predictor variable was the *ordinal position* of the target word within its thematic context -- that is, how many words from that theme had the participant already named in the experiment. The dependent variables were participants' reaction times (RTs) and error rates, and the prediction was that words with higher ordinal positions would have slower RTs because of the "cumulative" interference from the previously named words within that theme.
 
 ------
 
@@ -130,7 +130,7 @@ Try to reproduce the values in Table 1. From the table caption,
 
 > Mean naming latencies in milliseconds, mean error rates in percent and the corresponding standard deviations of means for each ordinal position and presentation.
 
-INSUFFICIENT INFORMATION ERROR 
+INSUFFICIENT INFORMATION ERROR (data aggregation steps)
 
 Rose and Rahman do not report whether they averaged for participants prior to getting condition averages, so I wasn't exactly sure how to do the aggregation to reproduce their table.
 
@@ -152,7 +152,7 @@ ms_rt <- ss_rt %>%
 ms_rt %>% kable()
 ```
 
-INSUFFICIENT INFORMATION ERROR
+INSUFFICIENT INFORMATION ERROR (handling filler trials)
 
 Many of the obtained RT values are off by 1-2 msecs. But, when I aggregated I get a sixth ordinal position. After looking at the data file, I realized that this is caused by including the filler trials. But, the paper doesn't specify how we should handle these trials.
 
@@ -257,15 +257,15 @@ summary(m1.rt)
 
 > For the ordinal position effect, there was a significant linear trend, F1(1, 23) = 36.6, p < .001, View the MathML source = .62; F2(1, 15) = 19.1, p < .001, View the MathML source = .56, indicating that RTs increased linearly with each ordinal position.
 
-INSUFFICIENT INFORMATION ERROR
+INSUFFICIENT INFORMATION ERROR (fitting a second model to RT data)
 
-I'm not sure how to do this analysis in the ANOVA framework. Also, the degrees of freedom change, so it seems like they are fitting a second model to the RT data, but it's not totally clear how this model is specified. 
+It is not clear to me whether they are fitting a second model to the RT data, and if they are the model is not clearly specified. 
 
 ```{r}
 
 ```
 
-INSUFFICIENT INFORMATION ERROR
+INSUFFICIENT INFORMATION ERROR (specification of random effects)
 
 Building the RT model from the information given in the text was difficult. Specifically, I wasn't sure exactly how the random effects were specified and how many levels of the `Theme` variable should go into the model. When I first ran the model, there were 24 levels, but I looked back in the material section which said there were only 16. So do we collapse across the 6 different "filler" themes? Do we include the filler themes at all? It also isn't clear whether they are modeling the data at the trial level or if they are aggregating to the participant-level prior to the modeling step.
 
@@ -296,7 +296,7 @@ m1.acc <- aov(correct ~ OrdPosition * Presentation +
 summary(m1.acc)
 ```
 
-INSUFFICIENT INFORMATION ERROR
+INSUFFICIENT INFORMATION ERROR (data aggregation steps)
 
 Again, I'm not sure what numbers actually go into the ANOVA since the aggregation process is not clear (to me at least) from the text. And there must have been some aggregation because they use a linear model on binary accuracy data. 
 
@@ -305,17 +305,15 @@ Again, I'm not sure what numbers actually go into the ANOVA since the aggregatio
 ```{r}
 codReport(Report_Type = 'pilot',
           Article_ID = 'IBRbN', 
-          Insufficient_Information_Errors = 5,
+          Insufficient_Information_Errors = 4,
           Decision_Errors = 0, 
           Major_Numerical_Errors = 0, 
           Minor_Numerical_Errors = 0)
 ```
 
-Overall, I thought the authors facilitated reproducibility by providing a tidy data file. However, the results section did not clearly describe several important steps in the analysis that made it impossible for me to know if I was reproducing their analysis. Specifically, they do not report how the data were aggregated prior to modeling with ANOVAs; they do not provide information about how they tested for the presence of a linear trend in the RT ANOVA, and they do not report whether filler trials were included in the analyses. 
+Overall, I thought the authors facilitated reproducibility by providing a tidy data file. However, the results section did not clearly describe several important steps in the analysis that made it impossible for me to know if I was reproducing their analysis. Specifically, they do not report how the data were aggregated prior to modeling with their ANOVAs; they do not provide information about how they tested for the presence of a linear trend in the RT ANOVA; they do not provide enough information about how to specify the random effects in their models; and they do not report whether filler trials were included in the analyses. 
 
-Note -- I wasn't sure how to quantify these insufficient information errors. I counted the number of analyses that I was unable to reproduce because of the missing information. But maybe I should have scored it in terms of missing bits of information.
-
-Finally, since I did not have enough information to do the analysis, I did not compare the reported and obtained numerical values. So a score a 0 in the `codReport` function is really more like an "NA" since there could be differences once we run the correct analysis.
+Note that since I did not have enough information to do the analysis, I did not compare the reported and obtained numerical values. So a score a 0 in the `codReport` function is really more like an "NA" since there could be differences once we run the correct analyses.
 
 ```{r session_info, include=TRUE, echo=TRUE, results='markup'}
 devtools::session_info()

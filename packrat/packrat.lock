@@ -38,6 +38,12 @@ Source: CRAN
 Version: 0.12.10
 Hash: 6cf65d0dd6a92f2d43c8d4805d33efe9
 
+Package: RcppEigen
+Source: CRAN
+Version: 0.3.2.9.1
+Hash: 78c99b40f3d8b1f432348916cc1c22c7
+Requires: Rcpp
+
 Package: assertthat
 Source: CRAN
 Version: 0.2.0
@@ -121,6 +127,11 @@ Version: 0.2.0
 Hash: e5a3b0b96a39f5581467b0c6366f7408
 Requires: magrittr, tibble
 
+Package: formatR
+Source: CRAN
+Version: 1.4
+Hash: b2a47a2b91737978cf50ba95825a9cd1
+
 Package: ggplot2
 Source: CRAN
 Version: 2.2.1
@@ -186,6 +197,12 @@ Source: CRAN
 Version: 0.2.0
 Hash: 3d6e7608e65bbf5cb170dab1e3c9ed8b
 
+Package: lme4
+Source: CRAN
+Version: 1.1-13
+Hash: d3aa59ebf48bb53e0251e6c454729c34
+Requires: Rcpp, RcppEigen, minqa, nloptr
+
 Package: lubridate
 Source: CRAN
 Version: 1.6.0
@@ -205,14 +222,20 @@ Requires: mime
 
 Package: memoise
 Source: CRAN
-Version: 1.0.0
-Hash: 56e7087c3559eb7ba72a9afb349bf896
+Version: 1.1.0
+Hash: 410fcd334bc626db100237cc1370f2e9
 Requires: digest
 
 Package: mime
 Source: CRAN
 Version: 0.5
 Hash: 463550cf44fb6f0a2359368f42eebe62
+
+Package: minqa
+Source: CRAN
+Version: 1.2.4
+Hash: 6e61ec948327e6dd044ccb09cf12db8d
+Requires: Rcpp
 
 Package: mnormt
 Source: CRAN
@@ -230,6 +253,11 @@ Source: CRAN
 Version: 0.4.3
 Hash: f96d896947fcaf9b6d0074002e9f4f9d
 Requires: colorspace
+
+Package: nloptr
+Source: CRAN
+Version: 1.0.4
+Hash: 8053df240a4635aeb54fc68c6de67709
 
 Package: openssl
 Source: CRAN
