@@ -16,7 +16,7 @@ output:
 
 #### Methods summary: 
 
-On each trial, Rose and Rahman showed adult participants pictures of concrete objects (e.g., a soccer ball) on a computer screen and asked to produce the verbal label for the object as quickly as possible. The target words were generated from a set of 16 themes (e.g., soccer) and the key predictor variable was the *ordinal position* of the target word within its thematic context -- or how many words from that theme had the participant already named in the experiment. The dependent variables were participants' reaction times (RTs) and error rates. The prediction was that words with higher ordinal positions would have slower RTs because of interference from the previously named words within that theme.
+On each trial, adult participants saw pictures of concrete objects (e.g., a soccer ball) on a computer screen and were asked to produce the verbal label for the object as quickly as possible. The target words were generated from a set of 16 themes (e.g., soccer) and the key predictor variable was the *ordinal position* of the target word within its thematic context -- that is, how many words from that theme had the participant already named in the experiment. The dependent variables were participants' reaction times (RTs) and error rates, and the prediction was that words with higher ordinal positions would have slower RTs because of interference from the previously named words within that theme.
 
 ------
 
@@ -68,7 +68,7 @@ glimpse(d)
 
 Data are already in long format and look relatively tidy. 
 
-Check if we have 24 participants
+Check if we have 24 participants.
 
 ```{r}
 n_expected <- 24
@@ -84,10 +84,12 @@ The output of the test is: `r test_n`, so we have the correct number of particip
 Check if we have 5 ordinal positions:
 
 ```{r}
+pos_expected <- 5
+
 test_ord <- d %>% 
   select(OrdPosition) %>% 
   unique() %>% 
-  nrow() == 5
+  nrow() == pos_expected
 ```
 
 The output of the test is: `r test_ord`, so there are a different number of ordinal positions in the data file (reported = 5, obtained = 6).
@@ -95,9 +97,11 @@ The output of the test is: `r test_ord`, so there are a different number of ordi
 Check if we have 3 presentations:
 
 ```{r}
+presents_expected <- 3
+
 test_present <- d %>% select(Presentation) %>% 
   unique() %>% 
-  nrow() == 3
+  nrow() == presents_expected
 ```
 
 The output of the test is: `r test_present`, so we have the correct number of presentation orders.
@@ -108,7 +112,10 @@ Create binary (T/F) accuracy variable by recoding the `ErrorCode` var (175 = cor
 
 ```{r}
 correct_code <- 175
-d %<>% mutate(correct = ifelse(`ErrorCode (175=correct)` == correct_code, TRUE, FALSE))
+
+d %<>% mutate(correct = ifelse(`ErrorCode (175=correct)` == correct_code, 
+                               TRUE, 
+                               FALSE))
 ```
 
 ## Step 4: Run analysis
@@ -147,7 +154,7 @@ ms_rt %>% kable()
 
 INSUFFICIENT INFORMATION ERROR
 
-Many of the obtained RT values are off by 1-2 msecs, which might be due to rounding. However, when I aggregated I get a sixth ordinal position. After looking at the data file, this is caused by including the filler trials. However, the paper doesn't specify that these trials should be removed. 
+Many of the obtained RT values are off by 1-2 msecs. But, when I aggregated I get a sixth ordinal position. After looking at the data file, I realized that this is caused by including the filler trials. But, the paper doesn't specify how we should handle these trials.
 
 Get the marginal means and standard deviations for RT for Ordinal Positions collapsing across Presentations.
 
