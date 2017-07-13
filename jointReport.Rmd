@@ -1,0 +1,333 @@
+---
+title: "COD Reproducibility Report"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+#### Article ID: IBRbN
+#### Pilot: Kyle MacDonald
+#### Start date: 4/21/17
+#### End date: 4/24/17  
+#### Copilot: Mike Frank
+
+-------
+
+#### Methods summary: 
+
+On each trial, adult participants saw pictures of concrete objects (e.g., a soccer ball) on a computer screen and were asked to produce the verbal label for that object as quickly as possible. The target words were generated from a set of 16 themes (e.g., soccer) and the key predictor variable was the *ordinal position* of the target word within its thematic context -- that is, how many words from that theme had the participant already named in the experiment. The dependent variables were participants' reaction times (RTs) and error rates, and the prediction was that words with higher ordinal positions would have slower RTs because of the "cumulative" interference from the previously named words within that theme.
+
+------
+
+#### Target outcomes: 
+
+For this article you should focus on the findings reported for Experiment 1 in section 2.2. Results and discussion. Specifically, you should attempt to reproduce all descriptive and inferential analyses reported in the text below and associated tables/figures:
+
+> Reaction times (RTs) for correct responses for each ordinal position of an item within the presented theme, collapsed across the three presentations, are presented in Fig. 1 (see also Table 1). A repeated measures analysis of variance (ANOVA) with the factors ordinal position (5) and presentation (3) with participants (F1) and themes (F2) as random variables (cf. Belke and Stielow, 2013 and Howard et al., 2006) revealed a main effects of presentation (F1(2, 46) = 54, p < .001, View the MathML source = .70; F2(2, 30) = 130.6, p < .001, View the MathML source = .89) and ordinal position (F1(4, 92) = 11.1, p < .001, View the MathML source = .33; F2(4, 60) = 7.0, p < .001, View the MathML source = .32). There was no interaction between presentation and ordinal position, Fs < 1.7. For the ordinal position effect, there was a significant linear trend, F1(1, 23) = 36.6, p < .001, View the MathML source = .62; F2(1, 15) = 19.1, p < .001, View the MathML source = .56, indicating that RTs increased linearly with each ordinal position.
+
+> An ANOVA of mean error rates revealed a main effect of presentation (F1 (2, 46) = 26, p < .001, View the MathML source = .53; F2(1, 30) = 30.2, p < .001, View the MathML source = .66) that reflects a decrease in errors between the first and later presentations (cf. Table 1). No other effects were found, Fs < 0.8.
+
+Here's the relevant table and figure from the paper:  
+
+![](figs/table1.png)
+
+![](figs/fig1.png)
+
+------
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(echo=TRUE, warning=FALSE, message=FALSE)
+```
+
+## Step 1: Load packages
+
+```{r}
+library(tidyverse) # for data munging
+library(knitr) # for kable table formating
+library(haven) # import and export 'SPSS', 'Stata' and 'SAS' Files
+library(readxl) # import excel files
+library(CODreports) # custom report functions
+library(magrittr) # for compound pipes
+library(stringr) # for working with strings
+library(ez) # for anovas that approximate SPSS settings
+library(lme4) # LMEMs
+library(lmerTest) # ANOVA for LMEM
+```
+
+## Step 2: Load data
+
+Read the first sheet of excel workbook to get Experiment 1 data.
+
+```{r}
+d <- read_excel(path = "data/data.xlsx", sheet = 1)
+```
+
+Check the structure of the data.
+
+```{r}
+glimpse(d)
+```
+
+Data are already in long format and look relatively tidy. 
+
+Check if we have 24 participants.
+
+```{r}
+n_expected <- 24
+
+test_n <- d %>% 
+  select(`Participant(F1)`) %>% 
+  unique() %>% 
+  nrow() == n_expected
+```
+
+The output of the test is: `r test_n`, so we have the correct number of participants.
+
+Check if we have 5 ordinal positions:
+
+```{r}
+pos_expected <- 5
+
+test_ord <- d %>% 
+  select(OrdPosition) %>% 
+  unique() %>% 
+  nrow() == pos_expected
+```
+
+The output of the test is: `r test_ord`, so there are a different number of ordinal positions in the data file (reported = 5, obtained = 6).
+
+```{r}
+qplot(x = `Theme(F2)`, OrdPosition, geom = "jitter", data = d) + 
+  theme(axis.text.x = element_text(angle = 90, hjust = .5))
+```
+
+Fillers are in position 6. Filter them. 
+
+```{r}
+d %<>% filter(!str_detect(`Theme(F2)`, "Filler"))
+```
+
+Check if we have 3 presentations:
+
+```{r}
+presents_expected <- 3
+
+test_present <- d %>% select(Presentation) %>% 
+  unique() %>% 
+  nrow() == presents_expected
+```
+
+The output of the test is: `r test_present`, so we have the correct number of presentation orders.
+
+## Step 3: Tidy data
+
+Create binary (T/F) accuracy variable by recoding the `ErrorCode` var (175 = correct; not sure what 176 or 177 mean).
+
+```{r}
+correct_code <- 175
+
+d %<>% mutate(correct = ifelse(`ErrorCode (175=correct)` == correct_code, 
+                               TRUE, 
+                               FALSE))
+```
+
+## Step 4: Run analysis
+
+### Pre-processing
+
+No pre-processing steps reported in the paper.
+
+### Descriptive statistics
+
+Try to reproduce the values in Table 1. From the table caption, 
+
+> Mean naming latencies in milliseconds, mean error rates in percent and the corresponding standard deviations of means for each ordinal position and presentation.
+
+Rose and Rahman do not report whether they averaged for participants prior to getting condition averages, so I wasn't exactly sure how to do the aggregation to reproduce their table. 
+
+We assume first that this is done by first aggregating subject means and then further aggregating acrodss means. (This decision is important because data are slightly unbalanced across participants). 
+
+```{r}
+# average rt for each participant and condition
+ss_rt <- d %>% 
+  filter(correct == T) %>% # just keep correct RTs
+  group_by(`Participant(F1)`, OrdPosition, Presentation) %>% 
+  summarise(ss_rt = mean(RT)) 
+  
+# for each condition
+ms_rt <- ss_rt %>% 
+  group_by(OrdPosition, Presentation) %>% 
+  summarise(m = mean(ss_rt),
+            stdev = sd(ss_rt)) %>% 
+  mutate_if(is.numeric, round, digits = 0)
+
+ms_rt %>% 
+  ungroup %>%
+  gather(measure, rt, m, stdev) %>%
+  mutate(ord_measure = paste0(as.character(OrdPosition), "-", measure)) %>%
+  select(-OrdPosition, -measure) %>%
+  spread(ord_measure, rt) %>%
+  kable()
+```
+Reprinting:
+![](figs/table1_rt.png)
+We see very minor differences throughout (at most 1ms). That's likely due to rounding errors.
+
+MINOR NUMERICAL ERRORS
+
+Do the same aggregation for accuracy scores (reported in %). Note that we multiply by 100 to convert proportion to percentage and then subtract from 100 to convert to mean error rate.
+
+```{r}
+# average rt each participant and condition
+ss_acc <- d %>% 
+  group_by(`Participant(F1)`, OrdPosition, Presentation) %>% 
+  summarise(ss_acc = mean(correct)) 
+  
+# average for each condition '
+ms_acc <- ss_acc %>% 
+  group_by(OrdPosition, Presentation) %>% 
+  summarise(m = 100 - (mean(ss_acc) * 100),
+            stdev = (sd(ss_acc) * 100)) %>% 
+  mutate_if(is.numeric, round, digits = 1) 
+
+ms_acc %>%  
+  ungroup %>%
+  gather(measure, accuracy, m, stdev) %>%
+  mutate(ord_measure = paste0(as.character(OrdPosition), "-", measure)) %>%
+  select(-OrdPosition, -measure) %>%
+  spread(ord_measure, accuracy) %>%
+  kable()
+```
+![](figs/table1_acc.png)
+Here we again see some minor issues in the comparison, with differences up to .3. None of these differences are > 10%. 
+
+MINOR NUMERICAL ERRORS
+
+### Inferential statistics
+
+**RT:** Try to reproduce the RT ANOVA model. From the paper,
+
+> A repeated measures analysis of variance (ANOVA) with the factors ordinal position (5) and presentation (3) with participants (F1) and themes (F2) as random variables (cf. Belke and Stielow, 2013 and Howard et al., 2006) revealed a main effects of presentation (F1(2, 46) = 54, p < .001, View the MathML  = .70; F2(2, 30) = 130.6, p < .001, View the MathML source = .89) and ordinal position (F1(4, 92) = 11.1, p < .001, View the MathML source = .33; F2(4, 60) = 7.0, p < .001, View the MathML source = .32).
+
+Note that "View the MathML source" = $\eta_p^2$.
+
+```{r}
+d.rt.model <- d %>% 
+  filter(correct == TRUE) %>% # only include correct RTs model
+  mutate(`Theme(F2)` = ifelse(str_detect(`Theme(F2)`, "Filler"), 
+                              "Filler",`Theme(F2)`)) %>% 
+  select(`Participant(F1)`, `Theme(F2)`, Presentation, OrdPosition, RT) %>% 
+  mutate_at(vars(1:4), funs(as.factor)) %>%
+  rename(Participant = `Participant(F1)`, 
+         Theme = `Theme(F2)`)
+```
+
+Although `aov` model appears similar to the one described, it does not return similar coefficients/df. Often `ez::ezANOVA` better approximates models fit with SPSS. 
+
+```{r}
+m1.rt.ez <- ezANOVA(data = d.rt.model, 
+                 dv = RT, 
+                 wid = Participant, 
+                 within = .(OrdPosition, Presentation),
+                 within_full = Theme)
+print(m1.rt.ez)
+```
+
+```{r}
+m2.rt.ez <- ezANOVA(data = d.rt.model, 
+                 dv = RT, 
+                 wid = Theme, 
+                 within = .(OrdPosition, Presentation),
+                 within_full = Theme)
+print(m2.rt.ez)
+```
+
+The `ezANOVA` model reproduces the coefficients and DF with only MINOR NUMERICAL ERRORS. 
+
+**Linear trend:** Try to reproduce the linear trend model. From the paper, 
+
+> For the ordinal position effect, there was a significant linear trend, F1(1, 23) = 36.6, p < .001, View the MathML source = .62; F2(1, 15) = 19.1, p < .001, View the MathML source = .56, indicating that RTs increased linearly with each ordinal position.
+
+
+```{r}
+d.rt.model %<>% mutate(OrdPositionNumeric = as.numeric(OrdPosition), 
+                       PresentationNumeric = as.numeric(Presentation))
+
+m1.rt.ez <- ezANOVA(data = d.rt.model, 
+                 dv = RT, 
+                 wid = Participant, 
+                 within = .(OrdPositionNumeric, PresentationNumeric),
+                 within_full = Theme)
+print(m1.rt.ez)
+```
+
+
+```{r}
+m2.rt.ez <- ezANOVA(data = d.rt.model, 
+                 dv = RT, 
+                 wid = Theme, 
+                 within = .(OrdPositionNumeric, PresentationNumeric),
+                 within_full = Participant)
+print(m2.rt.ez)
+```
+
+We also reproduce these models with MINOR NUMERICAL ERRORS.
+
+**Accuracy:** Try to reproduce the ANOVA model on mean error rates. From the paper, 
+
+> An ANOVA of mean error rates revealed a main effect of presen- tation (F1 (2, 46) = 26, p < .001, g2p = .53; F2(1, 30) = 30.2, p < .001, g2p = .66) that reflects a decrease in errors between the first and
+later presentations (cf. Table 1). No other effects were found, Fs < 0.8.
+
+First, prep the data for the model by converting predictor variables to factors and aggregating to get mean error rates.
+
+```{r}
+d.acc.model <- d %>% 
+  select(`Participant(F1)`, `Theme(F2)`, Presentation, OrdPosition, correct) %>% 
+  rename(Participant = `Participant(F1)`,
+         Theme = `Theme(F2)`) %>%
+  mutate_at(vars(1:4), funs(as.factor)) %>%
+  mutate(correct = as.numeric(correct))
+```
+
+Fit the accuracy F1 model.
+
+```{r}
+m1.acc.ez <- ezANOVA(data = d.acc.model, 
+                 dv = correct, 
+                 wid = Participant, 
+                 within = .(OrdPosition, Presentation),
+                 within_full = Theme)
+print(m1.acc.ez)
+```
+
+```{r}
+m2.acc.ez <- ezANOVA(data = d.acc.model, 
+                 dv = correct, 
+                 wid = Theme, 
+                 within = .(OrdPosition, Presentation),
+                 within_full = Participant)
+print(m2.acc.ez)
+```
+
+These tests also reproduce the ANOVA results for accuracy, with MINOR NUMERICAL ERRORS for the $F$ values. 
+
+There is also one MAJOR NUMERICAL ERROR for the $df$ in the second test: for the $F2$ test, the $df$ should be $F(2,30)$.
+
+## Step 5: Conclusion
+
+```{r}
+codReport(Report_Type = 'joint',
+          Article_ID = 'IBRbN', 
+          Insufficient_Information_Errors = 0,
+          Decision_Errors = 0, 
+          Major_Numerical_Errors = 1, 
+          Minor_Numerical_Errors = 5, 
+          Author_Assistance = FALSE)
+```
+
+Overall, there were minor numerical errors throughout, but most results were quite clearly replicated. It took a bit of guesswork to figure out the particular F1/F2 specification and implement this in R, but we believe that the result is correct. The only major numerical error we noted was a single DF mismatch in the accuracy F2 ANOVA, which we believe is likely a typo. 
+
+```{r session_info, include=TRUE, echo=TRUE, results='markup'}
+devtools::session_info()
+```
