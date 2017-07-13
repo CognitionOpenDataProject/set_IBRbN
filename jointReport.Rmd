@@ -300,6 +300,7 @@ m1.acc.ez <- ezANOVA(data = d.acc.model,
                  within_full = Theme)
 print(m1.acc.ez)
 ```
+Now fit F2 model. 
 
 ```{r}
 m2.acc.ez <- ezANOVA(data = d.acc.model, 
