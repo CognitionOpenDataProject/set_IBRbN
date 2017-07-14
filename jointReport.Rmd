@@ -8,9 +8,9 @@ output:
 
 #### Article ID: IBRbN
 #### Pilot: Kyle MacDonald
-#### Start date: 4/21/17
-#### End date: 4/24/17  
 #### Copilot: Mike Frank
+#### Start date: 4/21/17
+#### End date: 7/14/17  
 
 -------
 
@@ -313,7 +313,7 @@ print(m2.acc.ez)
 
 These tests also reproduce the ANOVA results for accuracy, with MINOR NUMERICAL ERRORS for the $F$ values. 
 
-There is also one MAJOR NUMERICAL ERROR for the $df$ in the second test: for the $F2$ test, the $df$ should be $F(2,30)$.
+There is also one MAJOR NUMERICAL ERROR for the $df$ in the second test: for the $F2$ test, the $df$ should be $F(2,30)$. However, this was resolved with author assistance - it was a typo.
 
 ## Step 5: Conclusion
 
@@ -322,12 +322,14 @@ codReport(Report_Type = 'joint',
           Article_ID = 'IBRbN', 
           Insufficient_Information_Errors = 0,
           Decision_Errors = 0, 
-          Major_Numerical_Errors = 1, 
+          Major_Numerical_Errors = 0, 
           Minor_Numerical_Errors = 5, 
-          Author_Assistance = FALSE)
+          Author_Assistance = T)
 ```
 
-Overall, there were minor numerical errors throughout, but most results were quite clearly replicated. It took a bit of guesswork to figure out the particular F1/F2 specification and implement this in R, but we believe that the result is correct. The only major numerical error we noted was a single DF mismatch in the accuracy F2 ANOVA, which we believe is likely a typo. 
+Overall, there were minor numerical errors throughout, but most results were quite clearly replicated. It took a bit of guesswork to figure out the particular F1/F2 specification and implement this in R, but we believe that the result is correct. 
+
+We initially identified a major numerical error - a single DF mismatch in the accuracy F2 ANOVA. However, the authors have confirmed that this was typo. 
 
 ```{r session_info, include=TRUE, echo=TRUE, results='markup'}
 devtools::session_info()
