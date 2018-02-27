@@ -538,7 +538,7 @@ df2 <- m2.acc.ez$anova_table$`den Df`[2]
 F1 <- m2.acc.ez$anova_table$`F`[2]
 p <- m2.acc.ez$anova_table$`Pr(>F)`[2]
 pes <- m2.acc.ez$anova_table$`pes`[2]
-# reportObject <- compareValues2(reportedValue = "1", obtainedValue = df1, valueType = 'df') # resolved with author assistance - its a typo
+reportObject <- compareValues2(reportedValue = "1", obtainedValue = df1, valueType = 'df')
 reportObject <- compareValues2(reportedValue = "2", obtainedValue = df1, valueType = 'df')
 reportObject <- compareValues2(reportedValue = "30", obtainedValue = df2, valueType = 'df')
 reportObject <- compareValues2(reportedValue = "30.2", obtainedValue = F1, valueType = 'F')
@@ -548,24 +548,24 @@ reportObject <- compareValues2(reportedValue = ".66", obtainedValue = pes, value
 
 These tests also reproduce the ANOVA results for accuracy, with minor numerical errors for the $F$ values. 
 
-There was also a major numerical error for the $df$ in the second test: for the $F2$ test, the $df$ should be $F(2,30)$ rather than $F(1,30)$. However, this was resolved with author assistance - it was a typo.
+There was also a major numerical error for the $df$ in the second test: for the $F2$ test, the $df$ should be $F(2,30)$ rather than $F(1,30)$.
 
 ## Step 5: Conclusion
 
 Overall, there were minor numerical errors throughout, but most results were quite clearly replicated. It took a bit of guesswork to figure out the particular F1/F2 specification and implement this in R, but we believe that the result is correct. 
 
-We initially identified a major numerical error - a single DF mismatch in the accuracy F2 ANOVA. However, the authors have confirmed that this was typo. 
+We identified a major numerical error - a single DF mismatch in the accuracy F2 ANOVA. The authors have confirmed that this was typo. 
 
 ```{r}
 reportObject$Article_ID <- "IBRbN"
 reportObject$affectsConclusion <- "no"
-reportObject$error_typo <- 0
+reportObject$error_typo <- 1
 reportObject$error_specification <- 0
 reportObject$error_analysis <- 0
 reportObject$error_data <- 0
 reportObject$error_unidentified <- 0
 reportObject$Author_Assistance <- T
-reportObject$resolved_typo <- 1
+reportObject$resolved_typo <- 0
 reportObject$resolved_specification <- 0
 reportObject$resolved_analysis <- 0
 reportObject$resolved_data <- 0
